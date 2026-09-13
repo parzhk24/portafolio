@@ -359,17 +359,98 @@
             color: var(--primary);
         }
 
-        /* Mobile Menu */
-        @media (max-width: 768px) {
-            .hero h1 {
-                font-size: 2.25rem;
-            }
-            .nav-links {
-                display: none;
-            }
-            .cards-grid {
-                grid-template-columns: 1fr;
-            }
+        /* Modal Visor de PDF */
+        .pdf-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(8px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 1.5rem;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .pdf-modal.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .pdf-modal-container {
+            background-color: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            width: 100%;
+            max-width: 950px;
+            height: 85vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+            transform: scale(0.95);
+            transition: transform 0.3s ease;
+        }
+
+        .pdf-modal.active .pdf-modal-container {
+            transform: scale(1);
+        }
+
+        .pdf-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            background-color: rgba(15, 23, 42, 0.5);
+        }
+
+        .pdf-modal-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .pdf-modal-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .pdf-modal-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            cursor: pointer;
+            padding: 0.4rem 0.6rem;
+            border-radius: 6px;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            text-decoration: none;
+        }
+
+        .pdf-modal-btn:hover {
+            color: var(--text-main);
+            background: var(--surface-hover);
+        }
+
+        .pdf-modal-body {
+            flex: 1;
+            width: 100%;
+            height: 100%;
+            background-color: #0b1120;
+        }
+
+        .pdf-modal-body iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
         }
     </style>
 </head>
@@ -548,8 +629,11 @@
                         </div>
                     </div>
                     <div class="card-actions">
-                        <a href="https://www.datacamp.com" target="_blank" class="card-link">
+                        <button type="button" class="card-link" style="background:none; border:none; cursor:pointer;" onclick="openPdfModal('../certificados/intro_python.pdf', 'Introduction to Python - Certificado')">
                             <i class="fa-solid fa-award"></i> Ver Certificado
+                        </button>
+                        <a href="certificados/intro_python.pdf" download class="card-link" title="Descargar PDF">
+                            <i class="fa-solid fa-download"></i> Descargar
                         </a>
                     </div>
                 </div>
@@ -687,5 +771,75 @@
         </div>
     </footer>
 
+    <!-- Modal Visor de PDF -->
+    <div id="pdfModal" class="pdf-modal" onclick="closePdfModalOnBackdrop(event)">
+        <div class="pdf-modal-container">
+            <div class="pdf-modal-header">
+                <div class="pdf-modal-title">
+                    <i class="fa-solid fa-file-pdf" style="color: #ef4444;"></i>
+                    <span id="pdfModalTitle">Visor de Certificado</span>
+                </div>
+                <div class="pdf-modal-actions">
+                    <a id="pdfModalDownload" href="#" download class="pdf-modal-btn" title="Descargar PDF">
+                        <i class="fa-solid fa-download"></i>
+                    </a>
+                    <a id="pdfModalOpenTab" href="#" target="_blank" class="pdf-modal-btn" title="Abrir en pestaña nueva">
+                        <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                    </a>
+                    <button class="pdf-modal-btn" onclick="closePdfModal()" title="Cerrar (Esc)">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="pdf-modal-body">
+                <iframe id="pdfModalFrame" src="" title="Visor de PDF"></iframe>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openPdfModal(pdfUrl, title = 'Visor de Certificado') {
+            const modal = document.getElementById('pdfModal');
+            const frame = document.getElementById('pdfModalFrame');
+            const titleElem = document.getElementById('pdfModalTitle');
+            const downloadBtn = document.getElementById('pdfModalDownload');
+            const openTabBtn = document.getElementById('pdfModalOpenTab');
+
+            titleElem.textContent = title;
+            frame.src = pdfUrl;
+            downloadBtn.href = pdfUrl;
+            openTabBtn.href = pdfUrl;
+
+            modal.style.display = 'flex';
+            setTimeout(() => {
+                modal.classList.add('active');
+            }, 10);
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closePdfModal() {
+            const modal = document.getElementById('pdfModal');
+            const frame = document.getElementById('pdfModalFrame');
+
+            modal.classList.remove('active');
+            setTimeout(() => {
+                modal.style.display = 'none';
+                frame.src = '';
+            }, 300);
+            document.body.style.overflow = '';
+        }
+
+        function closePdfModalOnBackdrop(event) {
+            if (event.target.id === 'pdfModal') {
+                closePdfModal();
+            }
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closePdfModal();
+            }
+        });
+    </script>
 </body>
 </html>
